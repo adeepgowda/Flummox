@@ -18,30 +18,38 @@
 #include "errorfunction.h"
 #include "numberretriever.h"
 
-std::string floattostring (float num);
+std::string float_to_string (float num);
+
+std::string cmd_global;
+bool success = true;
 
 int main(int argc, const char * argv[])
 {
-    unsigned int lines=0, emptylines=0;
+    unsigned int lines=0, emptylines=0, i=0;
     std::string filename,cmd;
     std::vector<std::string> varname;
     std::vector<float> varvalue;
-    bool spindledefine=false, tooldefine=false, definecood=false, definemeasure=false, definitionpass=false;
-    
+    bool spindledefine=false, tooldefine=false, definecood=false, defineunits=false, definitionpass=false;
+
     std::cout << "Enter the name of File : ";
         std::cin >> filename;
+    std::cout << "Retrieving the file '" << filename << "'" << std::endl << std::endl;
     clock_t start = clock();
-    lines = numberoflines(filename);
 
-    for (unsigned int i=0; i<lines; i++)
+nxt:
+try
     {
-        def: cmd = file_read_func(filename, i);
-                
+    lines = numberoflines(filename);
+    for ( i=i; ((i<lines)&&(success==true)); ++i)
+    {
+        cmd = file_read_func(filename, i);
+        cmd_global = cmd;
+
         if(cmd.length()!=0)
         {
             std::cout << "N" << (i+1-emptylines)*10 << " ";
 
-            for (unsigned int b=0; (b < cmd.length()&&(cmd[b]!=EOF)); b++)
+            for (unsigned int b = 0; b < cmd.length(); ++b)
             {
                 switch (cmd[b])
                 {
@@ -54,10 +62,10 @@ int main(int argc, const char * argv[])
                                     std::cout << "G90 ";
                                 else if ((cmd[b+1]=='.')&&(cmd[b+2]=='i')&&(cmd[b+3]=='j')&&(cmd[b+4]=='k')&&(b=b+4))
                                     std::cout << "G90.1 ";
-                                else { error(2002,b,i); return 0; }
+                                else error(2002,b,i);
                             }
                             else if ((((cmd[b+1]=='i')&&(cmd[b+2]=='m')&&(cmd[b+3]=='p')&&(b=b+3)) ||
-                                    ((cmd[b+1]=='b')&&(cmd[b+2]=='r')&&(cmd[b+3]=='i')&&(cmd[b+4]=='t')&&(b=b+4)))&&(definemeasure=true))
+                                    ((cmd[b+1]=='b')&&(cmd[b+2]=='r')&&(cmd[b+3]=='i')&&(cmd[b+4]=='t')&&(b=b+4)))&&(defineunits=true))
                                 std::cout << "G20 ";
                             else if ((cmd[b+1]=='i')&&(cmd[b+2]=='n')&&(cmd[b+3]=='c')&&(b=b+3)&&(definecood=true))
                             {
@@ -65,21 +73,23 @@ int main(int argc, const char * argv[])
                                     std::cout << "G91 ";
                                 else if ((cmd[b+1]=='.')&&(cmd[b+2]=='i')&&(cmd[b+3]=='j')&&(cmd[b+4]=='k')&&(b=b+4))
                                     std::cout << "G91.1 ";
-                                else { error(2003,b,i); return 0; }
+                                else error(2003,b,i);
                             }
-                            else if ((cmd[b+1]=='m')&&(cmd[b+2]=='k')&&(cmd[b+3]=='s')&&(b=b+3)&&(definemeasure=true))
+                            else if ((cmd[b+1]=='m')&&(cmd[b+2]=='k')&&(cmd[b+3]=='s')&&(b=b+3)&&(defineunits=true))
                                 std::cout << "G21 ";
-                            else { error(2001,b,i); return 0; }
+                            else error(2001,b,i);
+                            if((definecood==true)&&(defineunits==true)&&(definitionpass=true)) //Check if all necessary terms are defined
+                                ;
                         }
-                        else { error(2000,b,i); return 0; }
-                        break;
+                        else error(2000,b,i);
+                             break;
                     
                     case ' ': break;
                         
                     case '\t': break;
                         
                     case 'c':
-                        if((definecood==true)&&(definemeasure==true)&&(definitionpass=true));   else {error(0,b,i); return 0;}
+                        if(definitionpass==true);   else error(0,b,i);
                         if ((cmd[b+1]=='h')&&(cmd[b+2]=='g')&&(cmd[b+3]=='.')&&(b=b+3))
                         {
                             unsigned int c=0;
@@ -94,13 +104,13 @@ int main(int argc, const char * argv[])
                                     if (std::find(varname.begin(),varname.end(),cmd.substr(b,c))!=varname.end())
                                     {
                                         long unsigned int pos = std::distance(varname.begin(),std::find(varname.begin(),varname.end(),cmd.substr(b,c)));
-                                        spindlespeed = floattostring(varvalue[pos]);
+                                        spindlespeed = float_to_string(varvalue[pos]);
                                     }
                                     b=b+c;
                                 }
                                 else
                                 {
-                                    while(cmd[b]==' ') b++;
+                                    while(cmd[b]==' ') ++b;
                                     while (std::isdigit(cmd[c+b]))
                                         c++;
                                     if ((c==0)||(cmd[b]=='0'))
@@ -110,12 +120,12 @@ int main(int argc, const char * argv[])
                                     spindlespeed = cmd.substr(b,c);
                                     b=b+c-1;
                                 }
-                                while(cmd[b+1]==' ') b++;
+                                while(cmd[b+1]==' ') ++b;
                                 if ((cmd[b+1]=='c') && (cmd[b+2]=='w')&&(b=b+2))
                                     std::cout << "M03 ";
                                 else if ((cmd[b+1]=='c') && (cmd[b+2]=='c') && (cmd[b+3]=='w') && (b=b+3))
                                     std::cout << "M04 ";
-                                else { error(3002, b, i); return 0; }
+                                else error(3002, b, i);
                                 std::cout << "S" << spindlespeed;
                             }
                             else if ((cmd[b+1]=='T')&&(b=b+2)&&(tooldefine=true))
@@ -123,7 +133,7 @@ int main(int argc, const char * argv[])
                                 while (std::isdigit(cmd[c+b]))
                                     c++;
                                 if(c==0)
-                                    { error(3003, b, i); return 0; }
+                                    error(3003, b, i);
                                 std::string toolchange = cmd.substr(b,c);
                                 b=b+c;
                                 std::cout << "M06 T" << toolchange;
@@ -138,20 +148,21 @@ int main(int argc, const char * argv[])
                                     std::cout << "M07";
                                 else if ((cmd[b+1]=='.')&&(cmd[b+2]=='F')&&(cmd[b+3]=='l')&&(cmd[b+4]=='o')&&(cmd[b+5]=='o')&&(cmd[b+6]=='d')&&(b=b+6))
                                     std::cout << "M08";
-                                else { error(3004, b, i); return 0; }
+                                else error(3004, b, i);
                             }
-                            else { error(3001, b, i); return 0; }
+                            else error(3001, b, i);
                         }
-                        else { error(3000, b, i); return 0; }
+                        else error(3000, b, i);
                         break;
 
                     case 'd':
-                        if((definecood==true)&&(definemeasure==true)&&(definitionpass=true));   else {error(0,b,i); return 0;}
+                        if(definitionpass==true);   else error(0,b,i);
                         if ((cmd[b+1]=='e')&&(cmd[b+2]=='c')&&(cmd[b+3]=='l')&&(cmd[b+4]=='.')&&(b=b+4))
                         {
                             if ((cmd[b+1]=='v')&&(cmd[b+2]=='a')&&(cmd[b+3]=='r')&&(cmd[b+4]==' ')&&(b=b+4))
                             {
-                                if(cmd[b+1]=='\0') goto error;
+                                if(cmd[b+1]=='\0')
+                                    error(55555,b,i);
                                 while ((cmd[b+1]!=' ')&&(cmd[b+1]!='\0')&&(b=b+1))
                                 {
                                     unsigned int c=0;
@@ -169,20 +180,20 @@ int main(int argc, const char * argv[])
                                         if (c==0)
                                         {
                                             std:: cout << "Enter A Valid Number !!!" << std::endl;
-                                            goto error;
+                                            error(55555,b,i);
                                         }
                                         varvalue.push_back(std::atof((cmd.substr(b,c)).c_str()));
                                         b=b+c;
                                     }
                                 }
                             }
-                            else goto error;
+                            else error(55555,b,i);
                         }
-                        else goto error;
+                        else error(55555,b,i);
                         break;
                         
                     case 'm':
-                        if((definecood==true)&&(definemeasure==true)&&(definitionpass=true));   else {error(0,b,i); return 0;}
+                        if(definitionpass==true);   else error(0,b,i);
                         if((cmd[b+1]=='o')&&(cmd[b+2]=='v')&&(cmd[b+3]=='.')&&(b=b+3))
                         {
                             bool circleinter=false;
@@ -195,36 +206,40 @@ int main(int argc, const char * argv[])
                                 std::cout << "G02 ";
                             else if((cmd[b+1]=='a')&&(cmd[b+2]=='c')&&(cmd[b+3]=='l')&&(cmd[b+4]=='o')&&(cmd[b+5]=='c')&&(cmd[b+6]=='(')&&(circleinter=true)&&(b=b+6))
                                 std::cout << "G03 ";
-                            else goto error;
+                            else error(55555,b,i);
 
-                            number_gcode_func(b, i, cmd, circleinter);
-                            b = number_gcode_variable.b;
-                            i = number_gcode_variable.i;
+                            if(number_gcode_func(b, i, cmd, circleinter).gcode_success==true)
+                            {
+                                b = number_gcode_variable.b;
+                                i = number_gcode_variable.i;
+                            } else { std::cout << "Came"; goto exit; }
                         }
-                        else goto error;
+                        else error(55555,b,i);
                         break;
                         
                     case 's':
-                        if((definecood==true)&&(definemeasure==true)&&(definitionpass=true));   else {error(0,b,i); return 0;}
+                        if(definitionpass==true);   else error(0,b,i);
                         if((cmd[b+1]=='t')&&(cmd[b+2]=='d')&&(cmd[b+3]=='.')&&(b=b+3))
                         {
                             if((cmd[b+1]=='c')&&(cmd[b+2]=='a')&&(cmd[b+3]=='n')&&(cmd[b+4]=='(')&&(b=b+4))
                             {
                                 std::cout << "G77 ";
-                                number_gcode_func(b, i, cmd, false);
-                                b = number_gcode_variable.b;
-                                i = number_gcode_variable.i;
+                                if(number_gcode_func(b, i, cmd, false).gcode_success==true)
+                                {
+                                    b = number_gcode_variable.b;
+                                    i = number_gcode_variable.i;
+                                } else goto exit;
                             }
-                            else goto error;
+                            else error(55555,b,i);
                             std::cout << std::endl << "N" << ((i+1-emptylines)*10+5) <<" G80";
                         }
-                        else goto error;
+                        else error(55555,b,i);
                         break;
                         
                     case 'E':
-                        if((definecood==true)&&(definemeasure==true)&&(definitionpass=true));   else {error(0,b,i); return 0;}
+                        if(definitionpass==true);   else error(0,b,i);
                         if ((cmd[b+1]=='O')&&(cmd[b+2]=='P')&&(b=b+2))
-                            if ((cmd[b+1]=='.')&&(cmd[b+2]=='R')&&(cmd[b+3]=='e')&&(cmd[b+4]=='t')&&(b=b+4))
+                            if ((cmd[b+1]=='.')&&(cmd[b+2]=='R')&&(cmd[b+3]=='e')&&(cmd[b+4]=='t')&&(cmd[b+5]=='u')&&(cmd[b+6]=='r')&&(cmd[b+7]=='n')&&(b=b+7))
                             {
                                 std::cout << "M30" << std::endl;
                                 goto exit;
@@ -232,48 +247,68 @@ int main(int argc, const char * argv[])
                             else std::cout << "M02 ";
                         else if((cmd[b+1]=='O')&&(cmd[b+2]=='O')&&(b=b+2))
                             std::cout << "M00 ";
-                        else goto error;
+                        else error(55555,b,i);
                         break;
                     
                     case '\0': break;
                     
                     case'/':
                         if(cmd[b+1]=='/')
-                        {
-                            i++;
-                            std::cout << std::endl;
-                            goto def;
-                        }
+                            b = static_cast<unsigned int>(cmd.length());    // Intentionally causing the for condtion to fail to exit the loop
+                        break;
 
-                    default: error:
-                        if (definitionpass==false)
-                            std::cout<< std::endl << "Define the co-ordinate parameter & the measurement parameter." << std::endl;
-                        else
-                        {
-                            std::cout << std::endl << "Syntax Error : ";
-                            std::cout << "At line "<< i+1 << " & at position " << b+1 << "." << std::endl;
-                            std:: cout << cmd[b] << std::endl;
-                        }
-                        return 0;
-                }
-            }
+                    default:
+                        error(55555, b, i);
+                }                               // Ending of the switch (cmd[b]) i.e., evaluates each letter in the string 'cmd'
+            }                                   // Ending of the for (unsigned int b = 0; b < cmd.length(); ++b)
             std::cout << std::endl;
-        }
+        }                                       // Ending of the if(cmd.length()!=0) i.e., check if the loaded string 'cmd' is empty or not
         else emptylines++;
+        
+    }                                           // Ending of the for (unsigned int i = 0; ((i<lines)&&(success==true)); ++i) i.e., line evaluator
+    }                                           // Ending of the try block
+    
+    catch (int exp)
+    {
+        ++i;
+        switch (exp)
+        {
+            case 0:
+                std::cout << "Exiting the program";
+                break;
+            
+            case 1:
+                goto nxt;
+                break;
+                
+            default:
+                break;
+        }
+        if (exp == 0)
+            goto exit;
+        else
+            goto nxt;
     }
     
 exit:
-    clock_t end = clock();
-    unsigned int runtime = unsigned((end-start)*1000000)/CLOCKS_PER_SEC;
-    std::cout << "The Program Has Been Generated Successfully. (Runtime = "<< runtime << " microseconds)" << std::endl;
+    if(success==true)
+    {
+        clock_t end = clock();
+        unsigned int runtime = unsigned((end-start)*1000000)/CLOCKS_PER_SEC;
+        std::cout << std::endl;
+        std::cout << std::endl << "The Program Has Been Generated Successfully. (Runtime = "<< runtime << " microseconds)" << std::endl;
+    }
     return 0;
-}
+}                                               // Ending of main function
 
-std::string floattostring (float num)
+std::string float_to_string (float num)
 {
     std::ostringstream buffer;
     buffer << num;
     return buffer.str();
 }
 
-// usefile.open("location", ios::in); use this for reading a file from a specific path\
+// usefile.open("location", ios::in); use this for reading a file from a specific path
+// use std::to_string(arg) for the above function
+// seperate the function out from the main switch case, lik in std.can
+// declare std as the class and the 'can' as one of the functions in it
