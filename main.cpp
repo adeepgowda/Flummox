@@ -27,7 +27,7 @@ int main(int argc, const char * argv[])
 {
     unsigned int lines=0, emptylines=0, i=0;
     std::string filename,cmd;
-    std::vector<std::string> varname;
+    std::vector<std::string> varname, cmd_reserve;
     std::vector<float> varvalue;
     bool spindledefine=false, tooldefine=false, definecood=false, defineunits=false, definitionpass=false;
 
@@ -35,14 +35,17 @@ int main(int argc, const char * argv[])
         std::cin >> filename;
     std::cout << "Retrieving the file '" << filename << "'" << std::endl << std::endl;
     clock_t start = clock();
-
+    
 nxt:
 try
     {
-    lines = numberoflines(filename);
+        
+    lines = number_of_lines_func(filename);
+    cmd_reserve = file_read_func(filename, lines);
+        
     for ( i=i; ((i<lines)&&(success==true)); ++i)
     {
-        cmd = file_read_func(filename, i);
+        cmd = cmd_reserve[i];
         cmd_global = cmd;
 
         if(cmd.length()!=0)
@@ -134,9 +137,9 @@ try
                                     c++;
                                 if(c==0)
                                     error(3003, b, i);
-                                std::string toolchange = cmd.substr(b,c);
+                                std::string toolnumber = cmd.substr(b,c);
                                 b=b+c;
-                                std::cout << "M06 T" << toolchange;
+                                std::cout << "M06 T" << toolnumber;
                             }
                             else if((cmd[b+1]=='C')&&(cmd[b+2]=='o')&&(cmd[b+3]=='o')&&(cmd[b+4]=='l')&&(b=b+4))
                             {
@@ -276,7 +279,7 @@ try
             case 0:
                 std::cout << "Exiting the program";
                 break;
-            
+                
             case 1:
                 goto nxt;
                 break;
@@ -289,6 +292,7 @@ try
         else
             goto nxt;
     }
+
     
 exit:
     if(success==true)
