@@ -13,61 +13,39 @@
 
 extern bool success;
 
-unsigned int number_of_lines_func (std::string filename)
+struct file_properties_datatype
 {
-    unsigned int lines=0;
-    unsigned long n = filename.length();
+    unsigned int lines = 0;
+    std::vector<std::string> cmd_reserve;
     
-    if (((filename[n-1]=='x')&&(filename[n-2]=='f')&&(filename[n-3]=='.'))==false)      // Evaluating from right to left
-    {
-        error(0, 0, 0);
-        return lines;
-    }
+} input_file;
 
-    std::string fileread;
-    std::ifstream userfile;
-        userfile.open(filename);
-    
-    if (userfile.is_open())
-        while (std::getline(userfile, fileread))
-            ++lines;
-    else
-        std::cout << "The file doesn't exist !!!" << std::endl;
-    userfile.close();
-    return lines;
-}
-
-std::vector<std::string> file_read_func (std::string filename, unsigned int lines)
+file_properties_datatype file_read_func (std::string filename)
 {
+    unsigned int n = static_cast<unsigned int> (filename.length()), lines=0;
     std::ifstream userfile;
     std::string temp;
-    std::vector<std::string> cmd_reserve;
-    unsigned long n = filename.length();
+    
+    if (((filename[n-1]=='x')&&(filename[n-2]=='f')&&(filename[n-3]=='.'))==false)      // Evaluating from right to left
+        error(0, 0, 0);
     
     userfile.open(filename);
     
-    if (((filename[n-1]=='x')&&(filename[n-2]=='f')&&(filename[n-3]=='.'))==false)      // Evaluating from right to left
-    {
-        error(0, 0, 0);
-        return cmd_reserve;
-    }
-    
     if(userfile.is_open())
     {
-        for (int i=0; i<lines; ++i)
-        {
-            std::getline(userfile, temp);
-            cmd_reserve.push_back(temp);
-        }
+        for (lines=0; std::getline(userfile, temp); ++lines)
+                input_file.cmd_reserve.push_back(temp);
+        
+        input_file.lines = lines;
         userfile.close();
     }
     else
     {
-        std::cout << "Operation Failed (read). The file may not exist.\n";
+        std::cout << "Operation Failed (read). The file may not exist.\n" << std::endl;
         success = false;
         userfile.close();
     }
-    return cmd_reserve;
+    return input_file;
 }
 // userfile.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); This can be used for skipping lines
 #endif /* linelocator_h */
