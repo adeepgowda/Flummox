@@ -18,7 +18,7 @@ struct file_properties_datatype
     unsigned int lines = 0;
     std::vector<std::string> cmd_reserve;
     
-} input_file;
+} input_file_properties;
 
 file_properties_datatype file_read_func (std::string filename)
 {
@@ -34,9 +34,9 @@ file_properties_datatype file_read_func (std::string filename)
     if(userfile.is_open())
     {
         for (lines=0; std::getline(userfile, temp); ++lines)
-                input_file.cmd_reserve.push_back(temp);
+                input_file_properties.cmd_reserve.push_back(temp);
         
-        input_file.lines = lines;
+        input_file_properties.lines = lines;
         userfile.close();
     }
     else
@@ -45,7 +45,7 @@ file_properties_datatype file_read_func (std::string filename)
         success = false;
         userfile.close();
     }
-    return input_file;
+    return input_file_properties;
 }
 // userfile.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); This can be used for skipping lines
 #endif /* linelocator_h */
