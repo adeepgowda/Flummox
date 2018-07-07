@@ -13,6 +13,7 @@
 #include <cctype>
 #include <vector>
 #include <ctime>
+#include <algorithm>
 
 #include "linelocator.h"
 #include "errorfunction.h"
@@ -40,8 +41,9 @@ nxt:
 try
     {
         
-    lines = number_of_lines_func(filename);
-    cmd_reserve = file_read_func(filename, lines);
+    file_read_func(filename);
+    lines = input_file.lines;
+    cmd_reserve = input_file.cmd_reserve;
         
     for ( i=i; ((i<lines)&&(success==true)); ++i)
     {
@@ -277,7 +279,7 @@ try
         switch (exp)
         {
             case 0:
-                std::cout << "Exiting the program";
+                std::cout << std::endl << "Exiting the program";
                 break;
                 
             case 1:
@@ -302,6 +304,7 @@ exit:
         std::cout << std::endl;
         std::cout << std::endl << "The Program Has Been Generated Successfully. (Runtime = "<< runtime << " microseconds)" << std::endl;
     }
+    std::cout << std::endl;
     return 0;
 }                                               // Ending of main function
 
@@ -316,3 +319,5 @@ std::string float_to_string (float num)
 // use std::to_string(arg) for the above function
 // seperate the function out from the main switch case, lik in std.can
 // declare std as the class and the 'can' as one of the functions in it
+
+// Take the cmd_reserve and remove all spaces before evaluating it
