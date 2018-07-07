@@ -42,8 +42,8 @@ try
     {
         
     file_read_func(filename);
-    lines = input_file.lines;
-    cmd_reserve = input_file.cmd_reserve;
+    lines = input_file_properties.lines;
+    cmd_reserve = input_file_properties.cmd_reserve;
         
     for ( i=i; ((i<lines)&&(success==true)); ++i)
     {
