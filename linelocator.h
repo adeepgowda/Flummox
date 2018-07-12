@@ -1,13 +1,13 @@
 //
-//  linelocator.h
+//  fileretriever.h
 //  CNC
 //
 //  Created by Adeep Gowda on 5/20/17.
 //  Copyright © 2017 Adeep Gowda. All rights reserved.
 //
 
-#ifndef linelocator_h
-#define linelocator_h
+#ifndef fileretriever_h
+#define fileretriever_h
 
 #include "errorfunction.h"
 
@@ -20,7 +20,7 @@ struct file_properties_datatype
     
 } input_file_properties;
 
-file_properties_datatype file_read_func (std::string filename)
+file_properties_datatype file_read_function (std::string filename)
 {
     unsigned int n = static_cast<unsigned int> (filename.length()), lines=0;
     std::ifstream userfile;
@@ -34,7 +34,7 @@ file_properties_datatype file_read_func (std::string filename)
     if(userfile.is_open())
     {
         for (lines=0; std::getline(userfile, temp); ++lines)
-                input_file_properties.cmd_reserve.push_back(temp);
+            input_file_properties.cmd_reserve.push_back(temp);
         
         input_file_properties.lines = lines;
         userfile.close();
@@ -45,7 +45,8 @@ file_properties_datatype file_read_func (std::string filename)
         success = false;
         userfile.close();
     }
+
     return input_file_properties;
 }
 // userfile.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); This can be used for skipping lines
-#endif /* linelocator_h */
+#endif /* fileretriever_h */
