@@ -15,9 +15,10 @@
 #include <ctime>
 #include <algorithm>
 
-#include "linelocator.h"
+#include "fileretriever.h"
 #include "errorfunction.h"
 #include "numberretriever.h"
+#include "memory.h"
 
 std::string float_to_string (float num);
 
@@ -41,7 +42,7 @@ nxt:
 try
     {
         
-    file_read_func(filename);
+    file_read_function(filename);
     lines = input_file_properties.lines;
     cmd_reserve = input_file_properties.cmd_reserve;
         
@@ -49,7 +50,7 @@ try
     {
         cmd = cmd_reserve[i];
         cmd_global = cmd;
-
+        
         if(cmd.length()!=0)
         {
             std::cout << "N" << (i+1-emptylines)*10 << " ";
@@ -59,7 +60,7 @@ try
                 switch (cmd[b])
                 {
                     case '#':
-                        if ((cmd[b+1]=='d')&&(cmd[b+2]=='e')&&(cmd[b+3]=='f')&&(cmd[b+4]=='.')&&(b=b+4))
+                        if (((cmd[b+1]=='d')&&(cmd[b+2]=='e')&&(cmd[b+3]=='f')&&(cmd[b+4]=='.')&&(b=b+4)) || (error(2000,b,i)))
                         {
                             if ((cmd[b+1]=='a')&&(cmd[b+2]=='b')&&(cmd[b+3]=='s')&&(b=b+3)&&(definecood=true))
                             {
@@ -86,8 +87,7 @@ try
                             if((definecood==true)&&(defineunits==true)&&(definitionpass=true)) //Check if all necessary terms are defined
                                 ;
                         }
-                        else error(2000,b,i);
-                             break;
+                        break;
                     
                     case ' ': break;
                         
@@ -95,7 +95,7 @@ try
                         
                     case 'c':
                         if(definitionpass==true);   else error(0,b,i);
-                        if ((cmd[b+1]=='h')&&(cmd[b+2]=='g')&&(cmd[b+3]=='.')&&(b=b+3))
+                        if (((cmd[b+1]=='h')&&(cmd[b+2]=='g')&&(cmd[b+3]=='.')&&(b=b+3)) || (error(3000, b, i)))
                         {
                             unsigned int c=0;
                             std::string spindlespeed;
@@ -157,7 +157,6 @@ try
                             }
                             else error(3001, b, i);
                         }
-                        else error(3000, b, i);
                         break;
 
                     case 'd':
@@ -168,33 +167,20 @@ try
                             {
                                 if(cmd[b+1]=='\0')
                                     error(55555,b,i);
-                                while ((cmd[b+1]!=' ')&&(cmd[b+1]!='\0')&&(b=b+1))
+                                while (((cmd[b+1]==',')&&(++b)) || ((cmd[b+1]!=' ')&&(cmd[b+1]!='\t')&&(cmd[b+1]!='\0')))
                                 {
-                                    unsigned int c=0;
-                                    while ((cmd[b+c]!=',')&&(cmd[b+c]!='=')&&(cmd[b+c]!='\0')&&(cmd[b+c]!=' ')&&(cmd[b+c]!='\t'))
-                                        c++;
-                                    if(c!=0)
-                                        varname.push_back(cmd.substr(b,c));
-                                    b=b+c;
-                                    
-                                    if ((cmd[b]=='=')&&(b=b+1))
+                                    if(memory_allocator_function(cmd, b, i).success==true)
                                     {
-                                        c=0;
-                                        while (std::isdigit(cmd[b+c]))
-                                            c++;
-                                        if (c==0)
-                                        {
-                                            std:: cout << "Enter A Valid Number !!!" << std::endl;
-                                            error(55555,b,i);
-                                        }
-                                        varvalue.push_back(std::atof((cmd.substr(b,c)).c_str()));
-                                        b=b+c;
+                                        b = memory_allocator_variable.b;
+                                        varname.push_back(memory_allocator_variable.varname);
+                                        varvalue.push_back(memory_allocator_variable.varvalue);
                                     }
+                                    else error(55555, b, i);
                                 }
                             }
-                            else error(55555,b,i);
+                            else error(55555, b, i);
                         }
-                        else error(55555,b,i);
+                        else error(55555, b, i);
                         break;
                         
                     case 'm':
@@ -214,10 +200,8 @@ try
                             else error(55555,b,i);
 
                             if(number_gcode_func(b, i, cmd, circleinter).gcode_success==true)
-                            {
-                                b = number_gcode_variable.b;
-                                i = number_gcode_variable.i;
-                            } else { std::cout << "Came"; goto exit; }
+                                b = gcode_number_variable.b;
+                            else error(55555, b, i);
                         }
                         else error(55555,b,i);
                         break;
@@ -230,10 +214,8 @@ try
                             {
                                 std::cout << "G77 ";
                                 if(number_gcode_func(b, i, cmd, false).gcode_success==true)
-                                {
-                                    b = number_gcode_variable.b;
-                                    i = number_gcode_variable.i;
-                                } else goto exit;
+                                    b = gcode_number_variable.b;
+                                else goto exit;
                             }
                             else error(55555,b,i);
                             std::cout << std::endl << "N" << ((i+1-emptylines)*10+5) <<" G80";
@@ -256,14 +238,16 @@ try
                         break;
                     
                     case '\0': break;
-                    
+                        
                     case'/':
                         if(cmd[b+1]=='/')
                             b = static_cast<unsigned int>(cmd.length());    // Intentionally causing the for condtion to fail to exit the loop
                         break;
 
                     default:
+                    {
                         error(55555, b, i);
+                    }
                 }                               // Ending of the switch (cmd[b]) i.e., evaluates each letter in the string 'cmd'
             }                                   // Ending of the for (unsigned int b = 0; b < cmd.length(); ++b)
             std::cout << std::endl;
@@ -295,7 +279,6 @@ try
             goto nxt;
     }
 
-    
 exit:
     if(success==true)
     {
@@ -321,3 +304,5 @@ std::string float_to_string (float num)
 // declare std as the class and the 'can' as one of the functions in it
 
 // Take the cmd_reserve and remove all spaces before evaluating it
+
+// Reduce the lines of code by inserting the error function into the if statement itself, refer #def function
