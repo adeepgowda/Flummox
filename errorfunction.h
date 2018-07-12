@@ -17,7 +17,7 @@
 extern bool success;
 extern std::string cmd_global;
 
-void error (int errorcode, unsigned int b, unsigned int i)
+bool error (int errorcode, unsigned int b, unsigned int i)
 {
     std::string cmd = cmd_global;
     std::cout << std::endl << std::endl << "        Error " << errorcode << " : ";
@@ -84,18 +84,21 @@ void error (int errorcode, unsigned int b, unsigned int i)
             break;
     }
     
-    if((b!=0) && (i!=0))                // Check if the error made is primary or secondary and enter only if error is secondary
+    if((b!=0) && (i!=0))
     {
         std::cout << std::endl << "        At line "<< i+1 << " & at position " << b+1 << "." << std::endl;
         std::cout << std::endl << "        " << cmd << std::endl;
-        for (unsigned int e = 0; e!=(b+5); ++e)
+        
+        for (unsigned int e = 0; e!=(b+8); ++e)
             std::cout << " ";
         std::cout << "^" << std::endl;
-        for (unsigned int e = 0; e!=(b+5); ++e)
+        
+        for (unsigned int e = 0; e!=(b+8); ++e)
             std::cout << " ";
-        std::cout << "Here" << std::endl;
+        std::cout << "Here" << std::endl << std::endl;
     }
-    if (errorcode >= 1000)
+    
+    if (errorcode >= 1000)              // Check if the error made is primary or secondary and enter only if error is secondary
         throw 1;
     else
     {
@@ -104,6 +107,4 @@ void error (int errorcode, unsigned int b, unsigned int i)
     }
 }
 
-
 #endif /*errorfunction_h */
-
