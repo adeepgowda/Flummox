@@ -9,12 +9,12 @@
 #ifndef numberretriever_h
 #define numberretriever_h
 
-struct number_gcode_datatype
+struct gcode_number_datatype
 {
-    unsigned int b=0, i=0;
+    unsigned int b=0;
     bool gcode_success = true;
 
-} number_gcode_variable;
+} gcode_number_variable;
 
 struct number_retriever_datatype
 {
@@ -23,16 +23,20 @@ struct number_retriever_datatype
     
 } number_retriever_variable;
 
-number_retriever_datatype number_retriever_func (std::string cmd, unsigned int b, bool display)
+number_retriever_datatype number_retriever_func (std::string cmd, unsigned int b, unsigned int i, bool display)
 {
     bool decimal=false, minusign=false;
     unsigned int c=1;
-    
     while ((std::isdigit(cmd[b+c])) || ((cmd[b+c]=='.')&&(decimal==false)&&(decimal=true)) || ((cmd[b+c]=='-')&&(minusign==false)&&(minusign=true)))
-        c++;
+        ++c;
+    --c;
+    if(c==0)
+    {
+        error(55555, b, i);
+    }
     
-    std::string number = cmd.substr(b,c);
-    number_retriever_variable.b = b+c-1;
+    std::string number = cmd.substr(b+1,c);
+    number_retriever_variable.b = b+c;
     number_retriever_variable.number = number;
     
     if(display==true)
@@ -41,7 +45,7 @@ number_retriever_datatype number_retriever_func (std::string cmd, unsigned int b
     return number_retriever_variable;
 }
 
-number_gcode_datatype number_gcode_func (unsigned int b, unsigned int i, std::string cmd, bool circleinter)
+gcode_number_datatype number_gcode_func (unsigned int b, unsigned int i, std::string cmd, bool circleinter)
 {
     bool xdef=false,zdef=false,qdef=false,ydef=false,rdef=false;
     while((cmd[b+1]!=')')&&(success==true))
@@ -49,38 +53,38 @@ number_gcode_datatype number_gcode_func (unsigned int b, unsigned int i, std::st
         switch (cmd[b+1])
         {
             case 'X':
-                if((xdef==false)&&(xdef=true)&&(++b))
-                    { number_retriever_func(cmd, b, true); b = number_retriever_variable.b;}
+                if((xdef==false)&&(xdef=true)&&(++b)&&(std::cout << "X"))
+                    { number_retriever_func(cmd, b, i, true); b = number_retriever_variable.b;}
                 else error(55555, b, i);
                 break;
                 
             case 'Y':
-                if((ydef==false)&&(ydef=true)&&(++b))
-                { number_retriever_func(cmd, b,true);  b = number_retriever_variable.b;}
+                if((ydef==false)&&(ydef=true)&&(++b)&&(std::cout << "Y"))
+                { number_retriever_func(cmd, b, i, true);  b = number_retriever_variable.b;}
                 else error(55555, b, i);
                 break;
                 
             case 'Z':
-                if((zdef==false)&&(zdef=true)&&(++b))
-                    { number_retriever_func(cmd, b,true); b = number_retriever_variable.b;}
+                if((zdef==false)&&(zdef=true)&&(++b)&&(std::cout << "Z"))
+                    { number_retriever_func(cmd, b, i, true); b = number_retriever_variable.b;}
                 else error(55555, b, i);
                 break;
                 
             case 'R':
-                if((rdef==false)&&(circleinter==true)&&(rdef=true)&&(++b))
-                    { number_retriever_func(cmd, b, true); b = number_retriever_variable.b;}
+                if((rdef==false)&&(circleinter==true)&&(rdef=true)&&(++b)&&(std::cout << "R"))
+                    { number_retriever_func(cmd, b, i, true); b = number_retriever_variable.b;}
                 else error(55555, b, i);
                 break;
                 
             case 'r':
-                if((rdef==false)&&(rdef=true)&&(++b))
-                    { number_retriever_func(cmd, b, true); b = number_retriever_variable.b;}
+                if((rdef==false)&&(rdef=true)&&(++b)&&(std::cout << "r"))
+                    { number_retriever_func(cmd, b, i, true); b = number_retriever_variable.b;}
                 else error(55555, b, i);
                 break;
                 
             case 'Q':
-                if((qdef==false)&&(qdef=true)&&(++b))
-                    { number_retriever_func(cmd, b, true); b = number_retriever_variable.b;}
+                if((qdef==false)&&(qdef=true)&&(++b)&&(std::cout << "Q"))
+                    { number_retriever_func(cmd, b, i, true); b = number_retriever_variable.b;}
                 else error(55555, b, i);
                 break;
                 
@@ -98,11 +102,9 @@ number_gcode_datatype number_gcode_func (unsigned int b, unsigned int i, std::st
         }
 
     }
-    number_gcode_variable.b = ++b;
-    number_gcode_variable.i = i;
+    gcode_number_variable.b = ++b;
     
-    return number_gcode_variable;
+    return gcode_number_variable;
 }
 
 #endif /* numberretriever_h */
-
