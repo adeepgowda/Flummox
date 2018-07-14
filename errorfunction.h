@@ -14,16 +14,22 @@
 //Secondary Error = Errors which are concerned with the pure mechanism of translation of languages. Ex.: Syntax errors, etc.
 //
 
-extern bool success;
+extern bool success_global;
 extern std::string cmd_global;
 
-bool error (int errorcode, unsigned int b, unsigned int i)
+void error (int errorcode, unsigned int b, unsigned int i)
 {
+    bool skip = false;
     std::string cmd = cmd_global;
-    std::cout << std::endl << std::endl << "        Error " << errorcode << " : ";
+    if(errorcode!= 1)
+        std::cout << std::endl << std::endl << "        Error " << errorcode << " : ";
     
     switch (errorcode)
     {
+        case 1:
+            skip = true;
+            break;
+            
         // Relating to all primary errors from this point on
         case 0:
             std::cout << "File Extension Error !!!";
@@ -84,7 +90,7 @@ bool error (int errorcode, unsigned int b, unsigned int i)
             break;
     }
     
-    if((b!=0) && (i!=0))
+    if((b!=0) && (i!=0) && (skip == false))
     {
         std::cout << std::endl << "        At line "<< i+1 << " & at position " << b+1 << "." << std::endl;
         std::cout << std::endl << "        " << cmd << std::endl;
@@ -98,12 +104,15 @@ bool error (int errorcode, unsigned int b, unsigned int i)
         std::cout << "Here" << std::endl << std::endl;
     }
     
-    if (errorcode >= 1000)              // Check if the error made is primary or secondary and enter only if error is secondary
-        throw 1;
+    if ((errorcode >= 1000) && (skip == false))              // Check if the error made is primary or secondary and enter only if error is secondary
+        throw 1;                                             // and throw the exception_code
     else
     {
-        success=false;
-        throw 0;
+        if (skip == false)
+        {
+            success_global=false;
+            throw 0;
+        }
     }
 }
 
