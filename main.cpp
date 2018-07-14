@@ -20,10 +20,8 @@
 #include "numberretriever.h"
 #include "memory.h"
 
-std::string float_to_string (float num);
-
 std::string cmd_global;
-bool success = true;
+bool success_global = true;
 
 int main(int argc, const char * argv[])
 {
@@ -46,7 +44,7 @@ try
     lines = input_file_properties.lines;
     cmd_reserve = input_file_properties.cmd_reserve;
         
-    for ( i=i; ((i<lines)&&(success==true)); ++i)
+    for ( i=i; ((i<lines)&&(success_global==true)); ++i)
     {
         cmd = cmd_reserve[i];
         cmd_global = cmd;
@@ -60,7 +58,7 @@ try
                 switch (cmd[b])
                 {
                     case '#':
-                        if (((cmd[b+1]=='d')&&(cmd[b+2]=='e')&&(cmd[b+3]=='f')&&(cmd[b+4]=='.')&&(b=b+4)) || (error(2000,b,i)))
+                        if ((cmd[b+1]=='d')&&(cmd[b+2]=='e')&&(cmd[b+3]=='f')&&(cmd[b+4]=='.')&&(b=b+4))
                         {
                             if ((cmd[b+1]=='a')&&(cmd[b+2]=='b')&&(cmd[b+3]=='s')&&(b=b+3)&&(definecood=true))
                             {
@@ -87,6 +85,7 @@ try
                             if((definecood==true)&&(defineunits==true)&&(definitionpass=true)) //Check if all necessary terms are defined
                                 ;
                         }
+                        else error(2000,b,i);
                         break;
                     
                     case ' ': break;
@@ -95,35 +94,39 @@ try
                         
                     case 'c':
                         if(definitionpass==true);   else error(0,b,i);
-                        if (((cmd[b+1]=='h')&&(cmd[b+2]=='g')&&(cmd[b+3]=='.')&&(b=b+3)) || (error(3000, b, i)))
+                        if ((cmd[b+1]=='h')&&(cmd[b+2]=='g')&&(cmd[b+3]=='.')&&(b=b+3))
                         {
                             unsigned int c=0;
-                            std::string spindlespeed;
-                            if ((cmd[b+1]=='S')&&(cmd[b+2]=='p')&&(cmd[b+3]=='e')&&(cmd[b+4]=='e')&&(cmd[b+5]=='d')&&(b=b+6)&&(spindledefine=true))
+                            float spindlespeed = 0;
+                            if ((cmd[b+1]=='S')&&(cmd[b+2]=='p')&&(cmd[b+3]=='e')&&(cmd[b+4]=='e')&&(cmd[b+5]=='d')&&(b=b+5)&&(spindledefine=true))
                             {
-                                if ((cmd[b]=='.')&&(b=b+1))
+                                if ((cmd[b+1]=='.')&&(b=b+1))
                                 {
-                                    c=0;
-                                    while ((cmd[b+c]!=',')&&(cmd[b+c]!='=')&&(cmd[b+c]!='\0')&&(cmd[b+c]!=' ')&(cmd[b+c]!='\t'))
+                                    c=1;
+                                    while ((cmd[b+c]!=',')&&(cmd[b+c]!='=')&&(cmd[b+c]!='\0')&&(cmd[b+c]!=' ')&&(cmd[b+c]!='\t'))
                                         c++;
-                                    if (std::find(varname.begin(),varname.end(),cmd.substr(b,c))!=varname.end())
+                                    --c;
+                                    std::string retrieved_var = cmd.substr(b+1,c);
+                                    if (std::find(varname.begin(), varname.end(), retrieved_var) != varname.end())
                                     {
-                                        long unsigned int pos = std::distance(varname.begin(),std::find(varname.begin(),varname.end(),cmd.substr(b,c)));
-                                        spindlespeed = float_to_string(varvalue[pos]);
+                                        unsigned int pos = static_cast<unsigned int>
+                                        ( std::distance(varname.begin(), std::find(varname.begin(), varname.end(), retrieved_var)) );
+                                        spindlespeed = (varvalue[pos]);
                                     }
                                     b=b+c;
                                 }
                                 else
                                 {
-                                    while(cmd[b]==' ') ++b;
-                                    while (std::isdigit(cmd[c+b]))
-                                        c++;
-                                    if ((c==0)||(cmd[b]=='0'))
+                                    while(cmd[b+1]==' ') ++b;
+                                    if((number_retriever_func(cmd, b, i, 1, false).success == true))
                                     {
-                                        std::cout << "M05";     break;
+                                        spindlespeed = number_retriever_variable.number;
+                                        b = number_retriever_variable.b;
                                     }
-                                    spindlespeed = cmd.substr(b,c);
-                                    b=b+c-1;
+                                    else
+                                    {
+                                        std::cout << "M05 "; break;
+                                    }
                                 }
                                 while(cmd[b+1]==' ') ++b;
                                 if ((cmd[b+1]=='c') && (cmd[b+2]=='w')&&(b=b+2))
@@ -133,15 +136,13 @@ try
                                 else error(3002, b, i);
                                 std::cout << "S" << spindlespeed;
                             }
-                            else if ((cmd[b+1]=='T')&&(b=b+2)&&(tooldefine=true))
+                            else if ((cmd[b+1]=='T')&&(b=b+1)&&(tooldefine=true))
                             {
-                                while (std::isdigit(cmd[c+b]))
-                                    c++;
-                                if(c==0)
-                                    error(3003, b, i);
-                                std::string toolnumber = cmd.substr(b,c);
-                                b=b+c;
-                                std::cout << "M06 T" << toolnumber;
+                                if(number_retriever_func(cmd, b, i, 3003, false).success==true)
+                                {
+                                    b = number_retriever_variable.b;
+                                    std::cout << "M06 T" << number_retriever_variable.number;       // number_retriever_variable.number is toolnumber
+                                }
                             }
                             else if((cmd[b+1]=='C')&&(cmd[b+2]=='o')&&(cmd[b+3]=='o')&&(cmd[b+4]=='l')&&(b=b+4))
                             {
@@ -157,6 +158,7 @@ try
                             }
                             else error(3001, b, i);
                         }
+                        else error(3000, b, i);
                         break;
 
                     case 'd':
@@ -167,9 +169,9 @@ try
                             {
                                 if(cmd[b+1]=='\0')
                                     error(55555,b,i);
-                                while (((cmd[b+1]==',')&&(++b)) || ((cmd[b+1]!=' ')&&(cmd[b+1]!='\t')&&(cmd[b+1]!='\0')))
+                                while ( ((cmd[b+1]==',')&&(++b)) || ((cmd[b+1]!=' ')&&(cmd[b+1]!='\t')&&(cmd[b+1]!='\0')) )
                                 {
-                                    if(memory_allocator_function(cmd, b, i).success==true)
+                                    if(memory_allocator_function(cmd, b, i).success ==true)
                                     {
                                         b = memory_allocator_variable.b;
                                         varname.push_back(memory_allocator_variable.varname);
@@ -199,7 +201,7 @@ try
                                 std::cout << "G03 ";
                             else error(55555,b,i);
 
-                            if(number_gcode_func(b, i, cmd, circleinter).gcode_success==true)
+                            if(number_gcode_func(cmd, b, i, circleinter).gcode_success==true)
                                 b = gcode_number_variable.b;
                             else error(55555, b, i);
                         }
@@ -213,9 +215,9 @@ try
                             if((cmd[b+1]=='c')&&(cmd[b+2]=='a')&&(cmd[b+3]=='n')&&(cmd[b+4]=='(')&&(b=b+4))
                             {
                                 std::cout << "G77 ";
-                                if(number_gcode_func(b, i, cmd, false).gcode_success==true)
+                                if(number_gcode_func(cmd, b, i,false).gcode_success == true)
                                     b = gcode_number_variable.b;
-                                else goto exit;
+                                else error (55555, b, i);
                             }
                             else error(55555,b,i);
                             std::cout << std::endl << "N" << ((i+1-emptylines)*10+5) <<" G80";
@@ -254,13 +256,13 @@ try
         }                                       // Ending of the if(cmd.length()!=0) i.e., check if the loaded string 'cmd' is empty or not
         else emptylines++;
         
-    }                                           // Ending of the for (unsigned int i = 0; ((i<lines)&&(success==true)); ++i) i.e., line evaluator
+    }                                           // Ending of the for (unsigned int i = 0; ((i<lines)&&(success_global==true)); ++i) i.e., line evaluator
     }                                           // Ending of the try block
     
-    catch (int exp)
+    catch (int exception_code)
     {
         ++i;
-        switch (exp)
+        switch (exception_code)
         {
             case 0:
                 std::cout << std::endl << "Exiting the program";
@@ -273,14 +275,14 @@ try
             default:
                 break;
         }
-        if (exp == 0)
+        if (exception_code == 0)
             goto exit;
         else
             goto nxt;
     }
 
 exit:
-    if(success==true)
+    if(success_global==true)
     {
         clock_t end = clock();
         unsigned int runtime = unsigned((end-start)*1000000)/CLOCKS_PER_SEC;
@@ -291,18 +293,10 @@ exit:
     return 0;
 }                                               // Ending of main function
 
-std::string float_to_string (float num)
-{
-    std::ostringstream buffer;
-    buffer << num;
-    return buffer.str();
-}
-
 // usefile.open("location", ios::in); use this for reading a file from a specific path
 // use std::to_string(arg) for the above function
 // seperate the function out from the main switch case, lik in std.can
 // declare std as the class and the 'can' as one of the functions in it
 
 // Take the cmd_reserve and remove all spaces before evaluating it
-
 // Reduce the lines of code by inserting the error function into the if statement itself, refer #def function
