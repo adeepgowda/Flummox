@@ -11,7 +11,7 @@
 
 #include "errorfunction.h"
 
-extern bool success;
+extern bool success_global;
 
 struct file_properties_datatype
 {
@@ -42,7 +42,7 @@ file_properties_datatype file_read_function (std::string filename)
     else
     {
         std::cout << "Operation Failed (read). The file may not exist.\n" << std::endl;
-        success = false;
+        success_global = false;
         userfile.close();
     }
 
