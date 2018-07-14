@@ -23,18 +23,18 @@ memory_allocator_datatype memory_allocator_function(std::string cmd, unsigned in
     unsigned int c=1;
     while ((cmd[b+c]!=',')&&(cmd[b+c]!='=')&&(cmd[b+c]!='\0')&&(cmd[b+c]!=' ')&&(cmd[b+c]!='\t'))
         ++c;
+    --c;
     
-    if(c!=1)
-        memory_allocator_variable.varname = cmd.substr(b+1,c-1);
+    if(c!=0)
+        memory_allocator_variable.varname = cmd.substr(b+1,c);
     else
         error(55555, b, i);
         
-    b = b+c-1;
-    if ((cmd[b+1]=='=')&&(b=b+1))
+    b = b+c;
+    if ((cmd[b+1]=='=')&&(b=b+1)&&(number_retriever_func(cmd, b, i, 55555, false).success == true))
     {
-        number_retriever_func(cmd, b, i, false);
         b = number_retriever_variable.b;
-        memory_allocator_variable.varvalue = std::atof(number_retriever_variable.number.c_str());
+        memory_allocator_variable.varvalue = number_retriever_variable.number;
     }
 
     memory_allocator_variable.b = b;
